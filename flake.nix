@@ -67,10 +67,7 @@
             rustc
             cargo
             rustfmt
-            nixpkgs-fmt
             sccache
-            clippy
-            rust-analyzer
           ] ++ lib.optional stdenv.isDarwin [
             darwin.apple_sdk.frameworks.SystemConfiguration
             iconv
