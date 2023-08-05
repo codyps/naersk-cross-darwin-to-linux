@@ -19,20 +19,16 @@
           inherit system;
         });
 
-        # "architecture" according to docker
-        dockerArch = "amd64";
-        # "system" according to nix
-        dockerSystem = "x86_64-linux";
         # "system" according to nixpkgs pkgsCross
-        dockerCrossSys = "gnu64";
+        pkgsCrossSys = "gnu64";
         # "triple"/target according to rust/llvm
-        dockerTriple = "x86_64-unknown-linux-gnu";
+        crossTriple = "x86_64-unknown-linux-gnu";
 
         toolchain = with fenix.packages.${system};
           combine [
             minimal.rustc
             minimal.cargo
-            targets.${dockerTriple}.latest.rust-std
+            targets.${crossTriple}.latest.rust-std
           ];
 
         naersk' = naersk.lib.${system}.override {
@@ -40,34 +36,25 @@
           rustc = toolchain;
         };
 
-        dockerPkgs = pkgs.pkgsCross.${dockerCrossSys};
+        crossPkgs = pkgs.pkgsCross.${pkgsCrossSys};
 
-        dockerCcDrv = dockerPkgs.stdenv.cc;
-        dockerCC =
-          let
-            cc = dockerCcDrv;
-          in
-          "${cc}/bin/${cc.targetPrefix}cc";
+        crossCc = crossPkgs.stdenv.cc;
+        crossCcBin =
+          "${crossCc}/bin/${crossCc.targetPrefix}cc";
       in
       {
         defaultPackage = naersk'.buildPackage
           {
             src = ./.;
-            CARGO_BUILD_TARGET = "${dockerTriple}";
-            # FIXME: setting this to
-            # ${pkgs.pkgsCross.gnu64.stdenv.cc}/bin/${cc.targetPrefix}cc while
-            # using `depsBuildBuild` that includes a darwin framework (and the
-            # cc drv) results in `-iframework` args getting passed to the
-            # compiler.
+            CARGO_BUILD_TARGET = "${crossTriple}";
 
-            CC_x86_64_unknown_linux_gnu = "${dockerCC}";
-            # FIXME: this is `dockerTriple` dependent
-            CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER = "${dockerCC}";
+            CC_x86_64_unknown_linux_gnu = "${crossCcBin}";
+            CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER = "${crossCcBin}";
             strictDeps = true;
 
             depsBuildBuild = [
-              dockerCcDrv
-            ] ++ pkgs.lib.optional pkgs.stdenv.isDarwin (with dockerPkgs; [
+              crossCc
+            ] ++ pkgs.lib.optional pkgs.stdenv.isDarwin (with crossPkgs; [
               pkgs.darwin.apple_sdk.frameworks.SystemConfiguration
               pkgs.iconv
             ]);
