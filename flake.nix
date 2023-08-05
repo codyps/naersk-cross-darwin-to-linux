@@ -48,7 +48,9 @@
             src = ./.;
             CARGO_BUILD_TARGET = "${crossTriple}";
 
-            CC_x86_64_unknown_linux_gnu = "${crossCcBin}";
+            #CC_x86_64_unknown_linux_gnu = "${crossCcBin}";
+            HOST_CC = "${pkgs.stdenv.cc.nativePrefix}cc";
+
             CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER = "${crossCcBin}";
             strictDeps = true;
 
