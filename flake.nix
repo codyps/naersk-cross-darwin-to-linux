@@ -43,7 +43,8 @@
 
         rustTargetPlatform = rust.toRustTarget crossPkgs.stdenv.targetPlatform;
         rustTargetPlatformUpper = lib.toUpper (
-          builtins.replaceStrings ["-"] ["_"] rustTargetPlatform);
+          builtins.replaceStrings [ "-" ] [ "_" ] rustTargetPlatform
+        );
         targetCc = "${crossPkgs.stdenv.cc}/bin/${crossPkgs.stdenv.cc.targetPrefix}cc";
       in
       {
