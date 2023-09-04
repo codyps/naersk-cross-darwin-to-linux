@@ -44,13 +44,12 @@
         rustTargetPlatform = rust.toRustTarget crossPkgs.stdenv.targetPlatform;
         rustTargetPlatformUpper = lib.toUpper (
           builtins.replaceStrings ["-"] ["_"] rustTargetPlatform);
-        targetCc= "${crossPkgs.stdenv.cc}/bin/${crossPkgs.stdenv.cc.targetPrefix}cc";
+        targetCc = "${crossPkgs.stdenv.cc}/bin/${crossPkgs.stdenv.cc.targetPrefix}cc";
       in
       {
         defaultPackage = naersk'.buildPackage
           {
             CARGO_BUILD_TARGET = "${crossPkgs.stdenv.targetPlatform.config}";
-
             "CC_${rustTargetPlatform}" = "${targetCc}";
             "CARGO_TARGET_${rustTargetPlatformUpper}_LINKER" = "${targetCc}";
             depsBuildBuild = [ crossPkgs.stdenv.cc ];
@@ -59,21 +58,6 @@
           };
 
         formatter = pkgs.nixpkgs-fmt;
-
-        devShell = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [
-            rustc
-            cargo
-            rustfmt
-            sccache
-          ] ++ lib.optional stdenv.isDarwin [
-            darwin.apple_sdk.frameworks.SystemConfiguration
-            iconv
-          ];
-
-          RUSTC_WRAPPER = "sccache";
-          RUST_SRC_PATH = "${pkgs.rust.packages.latest.rustPlatform.rustLibSrc}";
-        };
       }
     );
 }
